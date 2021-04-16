@@ -19,15 +19,28 @@ class ItemService:
         item_dao = ItemDao()
         item_list = item_dao.find_item_dao(item_filter, connection)
 
-
         for item in item_list:
-            item_id = item['id']
-            print(item_id)
-            item['images'] = item_dao.item_image_list(item_id, connection)
-            print(item)
-
-            item['review'] = item_dao.count_avg_review(item_id, connection)
-            print(item)
-
+            accommodation_id = item['id']
+            item['images'] = item_dao.item_image_list_dao(accommodation_id, connection)
+            item['review'] = item_dao.count_avg_review_dao(accommodation_id, connection)
 
         return {'data' : item_list}
+
+    def item_detail_view_service(self, item_info, connection):
+        """ 숙소 디테일 뷰 
+        Author: Binho Song
+        Args:
+            item_info : 유저가 선택한 숙소 정보
+            connection: 커넥션
+        Returns:
+             숙소 정보 반환
+        """
+        item_dao = ItemDao()
+        item_detail_view = item_dao.item_detail_view_dao(item_info, connection)
+        item_detail_view['images'] = item_dao.item_image_list_dao(item_info, connection)
+        item_detail_view['amenities'] = item_dao.item_detail_view_amenitie_dao(item_info,connection)
+        item_detail_view['review'] = item_dao.item_detail_view_review_dao(item_info, connection)
+        item_detail_view['review_avg'] = item_dao.count_avg_review_dao(item_info, connection)
+
+        return {'data' : item_detail_view}
+        
