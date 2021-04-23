@@ -1,7 +1,7 @@
-from jwt
+import jwt
 
 from functools import wraps
-from flask import requset, g
+from flask import request, g
 from config import ALGORITHM, SECRET_KEY
 from db_connector import connect_db
 from model.user_dao import UserDao
@@ -10,7 +10,7 @@ from response import *
 def login_decorator(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        access_token = requset.headers.get("AUTHORIZATION")
+        access_token = request.headers.get("AUTHORIZATION")
         try:
             if access_token:
                 payload = jwt.decode(access_token, SECRET_KEY, ALGORITHM)
@@ -32,8 +32,8 @@ def login_decorator(func):
         
             else:
                 raise ApiException(401, LOGIN_REQUIRED)
-        except jwt.InvalidTokenError:
-            raise ApiException(400, INVALID_TOKEN)
+        # except jwt.InvalidTokenError:
+        #     raise ApiException(400, INVALID_TOKEN)
         except ApiException as e:
             raise e
 

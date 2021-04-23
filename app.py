@@ -7,7 +7,7 @@ from decimal import Decimal
 from datetime import datetime, date
 from response import *
 
-from view import UserView, ItemView
+from view import UserView, ItemView, ReservationView
 
 class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
@@ -29,6 +29,7 @@ def create_app(test_config=None):
     app.config.from_pyfile('config.py')
     app.register_blueprint(UserView.user_app)
     app.register_blueprint(ItemView.item_app)
+    app.register_blueprint(ReservationView.reservation_app)
     CORS(app, resources={'*': {'origins': '*'}}, expose_header='Authorization')
     return app
 

@@ -3,6 +3,15 @@ import pymysql
 class UserDao:
 
     def find_user_dao(self, user_info, connection):
+        """ User check
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : user_email
+			- connection : connection
+        Returns:
+			result: user_id 
+        """
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             query = """
                 SELECT
@@ -19,13 +28,14 @@ class UserDao:
         return cursor.fetchone()
 
     def user_identifier_dao(self, user_info, connection):
-        """ 유저 식별
-        Author: Binho Song
-        Args:
-            user_info (dict): 유저정보
-            connection: 커넥션
+        """ User identifier
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : user_id
+			- connection : connection
         Returns:
-            created_user: user_id
+			result: user_id 
         """
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             query = """
@@ -40,13 +50,14 @@ class UserDao:
         return cursor.fetchone()
 
     def exists_user_email_dao(self, user_info, connection):
-        """ 유저 이메일 중복 확인
-        Author: Binho Song
-        Args:
-            user_info (dict): 유저정보
-            connection: 커넥션
+        """ User email exists
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : email
+			- connection : connection
         Returns:
-            created_user: 중복 email의 id
+			result: user_id
         """
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             query = """
@@ -61,13 +72,14 @@ class UserDao:
         return cursor.fetchone()
 
     def create_user_dao(self, user_info, connection):
-        """ 유저 회원가입
-        Author: Binho Song
-        Args:
-            user_info (dict): 유저정보
-            connection: 커넥션
+        """ Create user
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : user_info
+			- connection : connection
         Returns:
-            created_user: 새로 회원가입한 유저 id
+			result: user_id
         """
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             query = """
@@ -100,13 +112,14 @@ class UserDao:
         return cursor.lastrowid
 
     def create_user_log_dao(self, user_info, connection):
-        """ 유저 회원가입 로그
-        Author: Binho Song
-        Args:
-            user_info (dict): 유저정보
-            connection: 커넥션
+        """ Create User log
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : user_info
+			- connection : connection
         Returns:
-            created_user: 새로 회원가입한 유저 id
+			result: log_id 
         """
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             query = """
@@ -124,8 +137,7 @@ class UserDao:
                    user_id,
                    changer_id,
                    change_date
-               )
-               VALUES (
+               ) VALUES (
                    %(first_name)s,
                    %(last_name)s,
                    %(password)s,
@@ -143,3 +155,42 @@ class UserDao:
                """
             cursor.execute(query, user_info)
         return cursor.lastrowid
+
+    def user_mypage_list_dao(self, mypage_info, connection):
+        """ User mypage list
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : user_id
+			- connection : connection
+        Returns:
+			result: User mypage list
+        """
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            query = """
+                SELECT DISTINCT
+                    a.id as accommodation_id,
+                    a.title,
+                    a.city,
+                    r.start_date,
+                    r.end_date,
+                    ai.image_url
+                FROM 
+                    reservations r
+                INNER JOIN
+                    accommodations a
+                    ON a.id = r.accommodation_id
+                INNER JOIN
+                    accommodation_images ai
+                    ON ai.accommodation_id = a.id
+                WHERE
+                    r.user_id = %(user_id)s
+                GROUP BY
+                    r.start_date
+                ORDER BY
+                    r.created_at
+            """
+            cursor.execute(query, mypage_info)
+        return cursor.fetchall()
+
+

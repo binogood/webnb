@@ -1,8 +1,9 @@
-from flask import request, Blueprint, Flask
+from flask import request, Blueprint, Flask, g
 
 from service.user_service import UserService
 from db_connector import connect_db
 from response import *
+from utils import login_decorator
 
 BASIC_USER = 1
 
@@ -11,19 +12,15 @@ class UserView:
 
     @user_app.route('signup', methods=['POST'])
     def sign_up_user():
-        """ 유저 회원가입
-        Author: Binho Song
+        """ User view
+        Author:    
+            Binho Song
         Returns:
-            {
-                "custom_message": "USER_CREATED",
-                "result": "POST
-                }
+			result: {"message": "USER_CREATED"}
         """
         connection = None
         try:   
             data = request.json
-            # data = request.get_json()
-            print(data)
             if 'first_name' not in data:
                 raise ApiException(400, INVALID_INPUT_FIRST_NAME)
             if 'last_name' not in data:
@@ -53,7 +50,6 @@ class UserView:
             user_service.create_user_service(user_info, connection)
             connection.commit()
 
-            # raise ApiException(201, USER_CREATED)
             return {"message": "USER_CREATED"}
 
         except ApiException as e:
@@ -67,23 +63,15 @@ class UserView:
     
     @user_app.route('login', methods=['POST'])
     def login_user():
-        """ 유저 로그인
-        Author: Binho Song
+        """ User login view
+        Author:    
+            Binho Song
         Returns:
-            {
-                "message": "LOGIN SUCCESS",
-                "result": "POST
-                }
+			result: user_login
         """
         connection = None
         try:
             data = request.json
-            # data = request.get_json()
-
-            # if 'email' not in data:
-            #     raise ApiException(400, INVALID_INPUT_EMAIL)
-            # if 'password' not in data:
-            #     raise ApiException(400, INVALID_INPUT_PASSWORD)
 
             user_info = {
                 'email' : data['email'],
@@ -102,4 +90,38 @@ class UserView:
         finally:
             if connection:
                 connection.close()
+
+    @user_app.route('mypage/<int:mypage_status>', methods=['GET'])
+    @login_decorator
+    def user_mypage_view(mypage_status):
+        """ User mypage view
+        Author:    
+            Binho Song
+        Returns:
+			result: mypage_list
+        """
+        connection = None
+        try:
+            user_id = g.token_info['user_id']
+
+            mypage_info = {
+                'user_id' : user_id,
+                'mypage_status' : mypage_status
+            }
+
+            connection = connect_db()
+            user_service = UserService()
+            mypage_list = user_service.user_mypage_service(mypage_info, connection)
+
+            return mypage_list
+
+        except ApiException as e:
+            if connection:
+                connection.rollback()
+            raise e
+        
+        finally:
+            if connection:
+                connection.close()
+
 

@@ -4,19 +4,24 @@ import bcrypt
 import jwt
 from response import *
 from config import SECRET_KEY, ALGORITHM
+from datetime import datetime, timedelta, date
+import datetime
+
+NOW = datetime.datetime.now()
 
 class UserService:
     def __init__(self):
         pass
 
     def create_user_service(self, user_info, connection):
-        """ 유저 회원가입
-        Author: Binho Song
-        Args:
-            user_info (dict): 유저정보
-            connection: 커넥션
+        """ User create service 
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : user_info
+			- connection : connection
         Returns:
-            created_user: 새로 회원가입한 유저 id
+			result: user_info_id
         """
         user_dao = UserDao()
         email_exists = user_dao.exists_user_email_dao(user_info, connection)
@@ -33,19 +38,18 @@ class UserService:
         return user_info_id
 
     def login_user_service(self, user_info, connection):
-        """ 유저 로그인
-        Author: Binho Song
-        Args:
-            user_info (dict): 유저정보
-            connection: 커넥션
+        """ User login service
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : user_info
+			- connection : connection
         Returns:
-             jsonify({'accessToken': token, 'userId': user_id}), 201
-             (유저 토큰이랑 user_id 반환해준다)
+			result: token, user_id 
         """
         user_dao = UserDao()
         user = user_dao.find_user_dao(user_info, connection)
-        print(user)
-        print(user['password'])
+
         if user:
             if bcrypt.checkpw(user_info['password'].encode('utf-8'), user['password'].encode('utf-8')):
                 token = jwt.encode({'user_id':user['id']}, SECRET_KEY, ALGORITHM)
@@ -55,3 +59,27 @@ class UserService:
                 raise ApiException(400, USER_NOT_FOUND)    
             raise ApiException(400, PASSWORD_MISMATCH)
         raise ApiException(400, USER_NOT_FOUND)
+
+    def user_mypage_service(self, mypage_info, connection):
+        """ User mypage list
+        Author: 
+            Binho Song
+        Args:    
+			- item_filter : mypage_info
+			- connection : connection
+        Returns:
+			result: trip_list
+        """
+        user_dao = UserDao()
+        mypage_list = user_dao.user_mypage_list_dao(mypage_info, connection)
+        if mypage_info['mypage_status'] == 1:
+            trip_list = [item for item in mypage_list if item['end_date'] > NOW]
+        else :
+            trip_list = [item for item in mypage_list if item['end_date'] < NOW]
+
+        return {'data' : trip_list}
+
+ 
+        
+
+    
